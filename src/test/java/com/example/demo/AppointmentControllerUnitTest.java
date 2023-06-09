@@ -66,13 +66,13 @@ class AppointmentControllerUnitTest{
 
     @Test
     void shouldNotCreateAppointment() throws Exception {
-        
+
         Patient patient = new Patient("Jose Luis", "Olaya", 37, "j.olaya@email.com");
         Doctor doctor = new Doctor ("Perla", "Amalia", 24, "p.amalia@hospital.accwe");
         Room room = new Room("Dermatology");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
-        
+
         LocalDateTime startsAt= LocalDateTime.parse("19:30 24/04/2023", formatter);
         LocalDateTime finishesAt = LocalDateTime.parse("19:30 24/04/2023", formatter);
 
@@ -85,7 +85,7 @@ class AppointmentControllerUnitTest{
     }
 
     @Test
-    void shouldCreateOneAppointmentOutOfTwoConflictDate() throws Exception{
+    void shouldCreateOneAppointmentOutOfTwoConflictDate() throws Exception {
         Patient patient = new Patient("Jose Luis", "Olaya", 37, "j.olaya@email.com");
         Patient patient2 = new Patient("Paulino", "Antunez", 37, "p.antunez@email.com");
         Doctor doctor = new Doctor ("Perla", "Amalia", 24, "p.amalia@hospital.accwe");
@@ -104,9 +104,6 @@ class AppointmentControllerUnitTest{
         mockMvc.perform(post("/api/appointment").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(appointment)))
                 .andExpect(status().isOk());
-                
-
-
 
         List<Appointment> appointments = new ArrayList<Appointment>();
         appointments.add(appointment);
@@ -115,8 +112,6 @@ class AppointmentControllerUnitTest{
         mockMvc.perform(post("/api/appointment").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(appointment2)))
                 .andExpect(status().isNotAcceptable());
-                
-
     }
 
     @Test
