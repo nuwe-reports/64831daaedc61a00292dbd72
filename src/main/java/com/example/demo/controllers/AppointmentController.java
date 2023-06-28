@@ -1,30 +1,28 @@
 package com.example.demo.controllers;
 
-import com.example.demo.repositories.*;
-import com.example.demo.entities.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
+import com.example.demo.entities.Appointment;
+import com.example.demo.repositories.AppointmentRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 
 @RestController
 @RequestMapping("/api")
 public class AppointmentController {
 
-    @Autowired
     AppointmentRepository appointmentRepository;
+
+    @Autowired
+    public AppointmentController(AppointmentRepository appointmentRepository){
+        this.appointmentRepository = appointmentRepository;
+    }
 
     @GetMapping("/appointments")
     public ResponseEntity<List<Appointment>> getAllAppointments(){
@@ -52,11 +50,33 @@ public class AppointmentController {
 
     @PostMapping("/appointment")
     public ResponseEntity<List<Appointment>> createAppointment(@RequestBody Appointment appointment){
-        /** TODO 
-         * Implement this function, which acts as the POST /api/appointment endpoint.
-         * Make sure to check out the whole project. Specially the Appointment.java class
-         */
-        return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
+
+        // Check if the appointment is valid (startsAt is before finishesAt)
+        if (appointment.getStartsAt().isEqual(appointment.getFinishesAt()))
+            return ResponseEntity.badRequest().build(); // 400 Bad Request
+
+        // Check if the appointment is overlapped with any other appointment
+        ResponseEntity NOT_ACCEPTABLE = checkIsOverlapped(appointment);
+        if (NOT_ACCEPTABLE != null) return NOT_ACCEPTABLE; // 406 Not Acceptable
+
+        // Save the appointment in the database
+        List<Appointment> appointments = Collections.singletonList(appointmentRepository.save(appointment));
+
+        // If all OK, return the appointment with the 200 OK status
+        return ResponseEntity.status(HttpStatus.OK).body(appointments); // 200 OK
+    }
+
+    private ResponseEntity checkIsOverlapped(Appointment appointment) {
+        /*Create one appointment out of two conflict date*/
+        List<Appointment> existingAppointments = appointmentRepository.findAll(); // Get all appointments from the database
+
+        // Check if any of the existing appointments overlaps with the new appointment
+        boolean isOverlapped = existingAppointments.stream().anyMatch(existingAppointment -> existingAppointment.overlaps(appointment));
+
+        if (isOverlapped)
+            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).build();
+
+        return null;
     }
 
 

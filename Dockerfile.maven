@@ -1,0 +1,31 @@
+# Etapa de compilación y ejecución del microservicio
+FROM maven:latest as builder
+
+# Establece el directorio de trabajo dentro del contenedor
+WORKDIR /app
+
+# Copia el archivo pom.xml para descargar las dependencias
+COPY pom.xml .
+
+# Descarga las dependencias del proyecto
+RUN mvn dependency:go-offline -B
+
+# Copia el código fuente del microservicio
+COPY src ./src
+
+# Ejecuta las pruebas
+RUN mvn test
+
+# Compila el microservicio
+RUN mvn package -DskipTests
+
+# Etapa de producción, solo se copia el archivo JAR y las dependencias necesarias
+FROM openjdk:latest
+WORKDIR /app
+COPY --from=builder /app/target/my-service.jar ./my-service.jar
+
+# Puerto expuesto por el microservicio
+EXPOSE 8080
+
+# Comando de inicio del microservicio
+CMD ["java", "-jar", "my-service.jar"]
