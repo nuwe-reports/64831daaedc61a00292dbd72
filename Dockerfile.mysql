@@ -1,0 +1,13 @@
+# Etapa de construcción de la base de datos MySQL
+FROM mysql:latest
+# Configuraciones adicionales de MySQL, si las necesitas
+
+# Copia los archivos SQL de inicialización de la base de datos
+COPY schema.sql /docker-entrypoint-initdb.d/
+COPY data.sql /docker-entrypoint-initdb.d/
+
+# Puerto expuesto por MySQL
+EXPOSE 3306
+
+# Comando de inicio del contenedor de MySQL
+CMD ["mysqld"]
